@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FiSearch,
   FiShoppingBag,
@@ -9,7 +9,9 @@ import {
   FiX,
   FiArrowRight,
   FiZap,
+  FiLogOut,
 } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar({
   cartCount = 2,
@@ -17,9 +19,12 @@ export default function Navbar({
   onOpenCart,
   onOpenWishlist,
 }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
 
@@ -158,17 +163,60 @@ export default function Navbar({
               )}
             </button>
 
-            {/* Account / User */}
-            <a
-              href="#account"
-              aria-label="Account Profile"
-              className="hidden sm:flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full bg-brand-50 hover:bg-brand-100/80 border border-brand-200/60 text-brand-900 text-xs font-bold transition-all active:scale-95"
-            >
-              <div className="w-6 h-6 rounded-full bg-brand-700 text-white flex items-center justify-center text-[11px]">
-                <FiUser className="w-3.5 h-3.5" />
+            {/* Account / User Menu */}
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-brand-50 hover:bg-brand-100/80 border border-brand-200/60 text-brand-900 text-xs font-bold transition-all active:scale-95"
+                >
+                  <div className="w-6 h-6 rounded-full bg-brand-800 text-white flex items-center justify-center text-[11px] font-bold">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <span className="max-w-[90px] truncate hidden sm:inline">{user.name}</span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-premium border border-slate-200/80 py-2 z-50 animate-fadeIn">
+                    <div className="px-4 py-2 border-b border-slate-100">
+                      <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      to="/profile"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-900 transition"
+                    >
+                      <FiUser className="w-3.5 h-3.5" />
+                      <span>Atelier Profile</span>
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        setUserDropdownOpen(false);
+                        await logout();
+                        navigate('/');
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left"
+                    >
+                      <FiLogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
-              <span>Sign In</span>
-            </a>
+            ) : (
+              <Link
+                to="/login"
+                aria-label="Account Profile"
+                className="hidden sm:flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full bg-brand-50 hover:bg-brand-100/80 border border-brand-200/60 text-brand-900 text-xs font-bold transition-all active:scale-95"
+              >
+                <div className="w-6 h-6 rounded-full bg-brand-700 text-white flex items-center justify-center text-[11px]">
+                  <FiUser className="w-3.5 h-3.5" />
+                </div>
+                <span>Sign In</span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -244,13 +292,44 @@ export default function Navbar({
 
             {/* Drawer Bottom Actions */}
             <div className="pt-6 border-t border-slate-100 flex flex-col gap-3">
-              <a
-                href="#account"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 rounded-full bg-brand-900 text-white font-bold text-sm text-center shadow-soft hover:bg-brand-950"
-              >
-                Sign In to SoleSphere
-              </a>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 p-3 bg-brand-50 rounded-2xl">
+                    <div className="w-10 h-10 rounded-xl bg-brand-800 text-white font-bold flex items-center justify-center">
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div className="overflow-hidden">
+                      <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
+                      <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2.5 rounded-full bg-slate-100 text-slate-800 font-bold text-xs text-center hover:bg-slate-200 transition"
+                  >
+                    My Atelier Profile
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      setMobileMenuOpen(false);
+                      await logout();
+                      navigate('/');
+                    }}
+                    className="w-full py-2 rounded-full text-rose-600 font-semibold text-xs text-center hover:bg-rose-50 transition"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 rounded-full bg-brand-900 text-white font-bold text-sm text-center shadow-soft hover:bg-brand-950 transition"
+                >
+                  Sign In to SoleSphere
+                </Link>
+              )}
               <p className="text-[11px] text-center text-slate-500">
                 Complimentary shipping on orders $150+
               </p>

@@ -38,6 +38,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Routes
+const authRoutes = require('./routes/authRoutes');
+
+// API Endpoints
+app.use('/api/auth', authRoutes);
+
 // Root API Endpoint
 app.get('/api', (req, res) => {
   res.status(200).json({
