@@ -10,6 +10,7 @@ import {
   FiArrowRight,
   FiZap,
   FiLogOut,
+  FiShield,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
@@ -210,6 +211,16 @@ export default function Navbar({
                       <FiUser className="w-3.5 h-3.5" />
                       <span>Atelier Profile</span>
                     </Link>
+                    {user.role === 'ADMIN' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50/70 hover:bg-emerald-100 transition border-y border-emerald-100/60"
+                      >
+                        <FiShield className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    )}
                     <button
                       onClick={async () => {
                         setUserDropdownOpen(false);
@@ -330,6 +341,16 @@ export default function Navbar({
                   >
                     My Atelier Profile
                   </Link>
+                  {user.role === 'ADMIN' && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full py-2.5 rounded-full bg-emerald-600 text-white font-bold text-xs text-center hover:bg-emerald-700 transition flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <FiShield className="text-sm" />
+                      <span>Admin Executive Portal</span>
+                    </Link>
+                  )}
                   <button
                     onClick={async () => {
                       setMobileMenuOpen(false);

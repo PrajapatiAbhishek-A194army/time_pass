@@ -14,9 +14,17 @@ import WishlistPage from '../pages/WishlistPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import OrderConfirmationPage from '../pages/OrderConfirmationPage';
 
+// Admin imports
+import AdminRoute from './AdminRoute';
+import AdminLayout from '../layouts/AdminLayout';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import AdminCustomersPage from '../pages/admin/AdminCustomersPage';
+import AdminPlaceholderPage from '../pages/admin/AdminPlaceholderPage';
+
 export default function AppRoutes() {
   return (
     <Routes>
+      {/* Storefront Routes */}
       <Route element={<StorefrontLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/catalog" element={<CatalogPage />} />
@@ -30,10 +38,39 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+
+      {/* Admin Operations Command Center */}
+      <Route
+        path="/admin/*"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <Routes>
+                <Route index element={<AdminDashboardPage />} />
+                <Route path="customers" element={<AdminCustomersPage />} />
+                <Route
+                  path="products"
+                  element={
+                    <AdminPlaceholderPage
+                      title="Product & Inventory Control"
+                      phase="Phase 11"
+                      description="Full shoe creation, SKU variations, price adjusting, multi-angle imagery, and size stock management are scheduled for Phase 11."
+                    />
+                  }
+                />
+                <Route path="orders" element={<AdminDashboardPage />} />
+                <Route path="analytics" element={<AdminDashboardPage />} />
+                <Route path="*" element={<Navigate to="/admin" replace />} />
+              </Routes>
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
+

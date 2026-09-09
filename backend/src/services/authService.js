@@ -5,7 +5,19 @@ const { generateToken, generateResetToken } = require('../utils/generateToken');
 const { sendWelcomeEmail, sendPasswordResetEmail } = require('./emailService');
 
 // In-memory development store fallback for seamless execution when DB is offline
-const memoryUsers = {};
+const defaultAdminHash = bcrypt.hashSync('Admin@2026!', 10);
+const memoryUsers = {
+  'usr-admin-solesphere': {
+    id: 'usr-admin-solesphere',
+    name: 'Atelier Director',
+    email: 'admin@solesphere.com',
+    password: defaultAdminHash,
+    role: 'ADMIN',
+    phone: '+1 (555) 999-0000',
+    avatar: null,
+    createdAt: new Date('2026-01-01').toISOString(),
+  },
+};
 
 /**
  * Register a new user
