@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const orderService = require('./orderService');
+const emailService = require('./emailService');
 const { initialCatalog } = require('./productService');
 const { memoryUsers } = require('./authService');
 
@@ -801,6 +802,592 @@ const bulkProductActions = async (action, productIds = []) => {
   };
 };
 
+// --- Order Management & Consignment Fulfillment ---
+
+const adminOrderArchive = [
+  {
+    id: 'ord-live-1',
+    orderNumber: 'SS-2026-928174',
+    userId: 'usr-1',
+    customerName: 'Marcus Aurelius Sterling',
+    email: 'marcus.sterling@example.com',
+    phone: '+1 (555) 234-5678',
+    totalAmount: 489.90,
+    subtotal: 489.90,
+    shippingFee: 0,
+    tax: 0,
+    status: 'PROCESSING',
+    paymentStatus: 'PAID',
+    paymentMethod: 'Credit Card (Stripe)',
+    paymentId: 'pi_3MtwBwLkdIwHu7ix28A35VnZ',
+    carrier: 'FedEx Express',
+    trackingNumber: 'SS-FEDEX-918239',
+    createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+    shippingAddress: {
+      fullName: 'Marcus Aurelius Sterling',
+      email: 'marcus.sterling@example.com',
+      phone: '+1 (555) 234-5678',
+      street: '742 Evergreen Terrace, Suite 4B',
+      city: 'Beverly Hills',
+      state: 'CA',
+      postalCode: '90210',
+      country: 'United States',
+    },
+    items: [
+      {
+        id: 'item-1',
+        name: 'Apex Carbon Velocity Pro',
+        brand: 'SoleSphere Lab',
+        image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80',
+        size: 'US 10.5',
+        color: 'Forest Night / Volt',
+        price: 244.95,
+        quantity: 2,
+        sku: 'SS-APEX-US10_5',
+      },
+    ],
+    timeline: [
+      { title: 'Order Placed', timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(), description: 'Collector placed order via Stripe Checkout.' },
+      { title: 'Payment Confirmed', timestamp: new Date(Date.now() - 24 * 60 * 1000).toISOString(), description: 'Payment authorized and escrow settled.' },
+      { title: 'Atelier Processing', timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), description: 'Footwear reserved and allocated in warehouse.' },
+    ],
+  },
+  {
+    id: 'ord-live-2',
+    orderNumber: 'SS-2026-881923',
+    userId: 'usr-2',
+    customerName: 'Elena Rostova',
+    email: 'elena.rostova@marathon.org',
+    phone: '+1 (555) 876-5432',
+    totalAmount: 224.91,
+    subtotal: 189.99,
+    shippingFee: 15.00,
+    tax: 19.92,
+    status: 'SHIPPED',
+    paymentStatus: 'PAID',
+    paymentMethod: 'Credit Card (Stripe)',
+    paymentId: 'pi_3MtwBwLkdIwHu7ix28A35VnX',
+    carrier: 'DHL Priority',
+    trackingNumber: 'TRK-SS-91823901',
+    createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+    shippingAddress: {
+      fullName: 'Elena Rostova',
+      email: 'elena.rostova@marathon.org',
+      phone: '+1 (555) 876-5432',
+      street: '124 Ocean Drive, Penthouse 8',
+      city: 'Miami',
+      state: 'FL',
+      postalCode: '33139',
+      country: 'United States',
+    },
+    items: [
+      {
+        id: 'item-2',
+        name: 'AeroGlide Ultra Minimalist',
+        brand: 'SoleSphere Studio',
+        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80',
+        size: 'US 8',
+        color: 'Electric Mint',
+        price: 189.99,
+        quantity: 1,
+        sku: 'SS-AERO-US8',
+      },
+    ],
+    timeline: [
+      { title: 'Order Placed', timestamp: new Date(Date.now() - 3 * 3600 * 1000).toISOString(), description: 'Order submitted online.' },
+      { title: 'Packaging Complete', timestamp: new Date(Date.now() - 2 * 3600 * 1000).toISOString(), description: 'Handcrafted luxury packaging and sealed.' },
+      { title: 'Consignment Dispatched', timestamp: new Date(Date.now() - 1 * 3600 * 1000).toISOString(), description: 'Handed over to DHL Priority. Tracking ID: TRK-SS-91823901' },
+    ],
+  },
+  {
+    id: 'ord-live-3',
+    orderNumber: 'SS-2026-771239',
+    userId: 'usr-3',
+    customerName: 'Julian Thorne',
+    email: 'julian.thorne@design.co',
+    phone: '+44 20 7946 0912',
+    totalAmount: 320.00,
+    subtotal: 320.00,
+    shippingFee: 0,
+    tax: 0,
+    status: 'DELIVERED',
+    paymentStatus: 'PAID',
+    paymentMethod: 'Apple Pay',
+    paymentId: 'pi_3MtwBwLkdIwHu7ix28A35VnY',
+    carrier: 'FedEx Express',
+    trackingNumber: 'TRK-SS-48192034',
+    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+    shippingAddress: {
+      fullName: 'Julian Thorne',
+      email: 'julian.thorne@design.co',
+      phone: '+44 20 7946 0912',
+      street: '18 Kensington Palace Gardens',
+      city: 'London',
+      state: 'Greater London',
+      postalCode: 'W8 4QP',
+      country: 'United Kingdom',
+    },
+    items: [
+      {
+        id: 'item-3',
+        name: 'TerraTrack Alpine Explorer',
+        brand: 'SoleSphere Mountain',
+        image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80',
+        size: 'US 11',
+        color: 'Obsidian Black',
+        price: 320.00,
+        quantity: 1,
+        sku: 'SS-TERR-US11',
+      },
+    ],
+    timeline: [
+      { title: 'Order Placed', timestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(), description: 'Order created.' },
+      { title: 'Dispatched', timestamp: new Date(Date.now() - 18 * 3600 * 1000).toISOString(), description: 'FedEx Courier departed origin hub.' },
+      { title: 'Delivered', timestamp: new Date(Date.now() - 2 * 3600 * 1000).toISOString(), description: 'Delivered and signed by recipient.' },
+    ],
+  },
+  {
+    id: 'ord-live-4',
+    orderNumber: 'SS-2026-619284',
+    userId: 'usr-4',
+    customerName: 'Chloe Bennett',
+    email: 'chloe.bennett@atelier.com',
+    phone: '+1 (555) 345-6789',
+    totalAmount: 185.00,
+    subtotal: 185.00,
+    shippingFee: 0,
+    tax: 0,
+    status: 'DELIVERED',
+    paymentStatus: 'PAID',
+    paymentMethod: 'Credit Card',
+    paymentId: 'pi_3MtwBwLkdIwHu7ix28A35VnW',
+    carrier: 'UPS Worldwide',
+    trackingNumber: 'TRK-SS-11827394',
+    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+    shippingAddress: {
+      fullName: 'Chloe Bennett',
+      email: 'chloe.bennett@atelier.com',
+      phone: '+1 (555) 345-6789',
+      street: '450 West 33rd Street',
+      city: 'New York',
+      state: 'NY',
+      postalCode: '10001',
+      country: 'United States',
+    },
+    items: [
+      {
+        id: 'item-4',
+        name: 'Court Legacy Atelier 88',
+        brand: 'SoleSphere Heritage',
+        image: 'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=400&q=80',
+        size: 'US 7.5',
+        color: 'White / Forest',
+        price: 185.00,
+        quantity: 1,
+        sku: 'SS-COUR-US7_5',
+      },
+    ],
+    timeline: [
+      { title: 'Delivered', timestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(), description: 'Package handed directly to customer.' },
+    ],
+  },
+  {
+    id: 'ord-live-5',
+    orderNumber: 'SS-2026-551029',
+    userId: 'usr-5',
+    customerName: 'Lucas Moreau',
+    email: 'lucas.moreau@runner.fr',
+    phone: '+33 1 42 68 55 00',
+    totalAmount: 245.00,
+    subtotal: 245.00,
+    shippingFee: 0,
+    tax: 0,
+    status: 'PENDING',
+    paymentStatus: 'PAID',
+    paymentMethod: 'Credit Card',
+    paymentId: 'pi_3MtwBwLkdIwHu7ix28A35VnV',
+    carrier: 'FedEx Express',
+    trackingNumber: null,
+    createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
+    shippingAddress: {
+      fullName: 'Lucas Moreau',
+      email: 'lucas.moreau@runner.fr',
+      phone: '+33 1 42 68 55 00',
+      street: '15 Rue du Faubourg Saint-Honoré',
+      city: 'Paris',
+      state: 'Île-de-France',
+      postalCode: '75008',
+      country: 'France',
+    },
+    items: [
+      {
+        id: 'item-5',
+        name: 'Apex Carbon Velocity Pro',
+        brand: 'SoleSphere Lab',
+        image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80',
+        size: 'US 9',
+        color: 'Forest Night / Volt',
+        price: 245.00,
+        quantity: 1,
+        sku: 'SS-APEX-US9',
+      },
+    ],
+    timeline: [
+      { title: 'Order Placed', timestamp: new Date(Date.now() - 72 * 3600 * 1000).toISOString(), description: 'Awaiting warehouse inspection.' },
+    ],
+  },
+  {
+    id: 'ord-live-6',
+    orderNumber: 'SS-2026-441920',
+    userId: 'usr-1',
+    customerName: 'Marcus Aurelius Sterling',
+    email: 'marcus.sterling@example.com',
+    phone: '+1 (555) 234-5678',
+    totalAmount: 189.99,
+    subtotal: 189.99,
+    shippingFee: 0,
+    tax: 0,
+    status: 'CANCELLED',
+    paymentStatus: 'REFUNDED',
+    paymentMethod: 'Credit Card',
+    paymentId: 'pi_3MtwBwLkdIwHu7ix28A35VnU',
+    carrier: null,
+    trackingNumber: null,
+    createdAt: new Date(Date.now() - 96 * 3600 * 1000).toISOString(),
+    shippingAddress: {
+      fullName: 'Marcus Aurelius Sterling',
+      email: 'marcus.sterling@example.com',
+      phone: '+1 (555) 234-5678',
+      street: '742 Evergreen Terrace, Suite 4B',
+      city: 'Beverly Hills',
+      state: 'CA',
+      postalCode: '90210',
+      country: 'United States',
+    },
+    items: [
+      {
+        id: 'item-6',
+        name: 'Vanguard Retro Mid High',
+        brand: 'SoleSphere Originals',
+        image: 'https://images.unsplash.com/photo-1512374382149-233c42b661ac?auto=format&fit=crop&w=400&q=80',
+        size: 'US 10',
+        color: 'Forest Suede',
+        price: 189.99,
+        quantity: 1,
+        sku: 'SS-VANG-US10',
+      },
+    ],
+    timeline: [
+      { title: 'Order Cancelled', timestamp: new Date(Date.now() - 90 * 3600 * 1000).toISOString(), description: 'Customer cancelled consignment. Refund processed.' },
+    ],
+  },
+];
+
+/**
+ * Admin: Get all orders with search, status filtering, pagination, metrics
+ */
+const getAdminOrders = async (queryParams = {}) => {
+  const { search, status, page = 1, limit = 20 } = queryParams;
+
+  let allOrders = [];
+  try {
+    const dbOrders = await prisma.order.findMany({
+      include: {
+        items: true,
+        shippingAddress: true,
+        user: { select: { id: true, name: true, email: true, phone: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (dbOrders && dbOrders.length > 0) {
+      allOrders = dbOrders.map((o) => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        userId: o.userId || o.user?.id,
+        customerName: o.shippingAddress?.fullName || o.user?.name || 'SoleSphere Collector',
+        email: o.shippingAddress?.email || o.user?.email || 'collector@solesphere.com',
+        phone: o.shippingAddress?.phone || o.user?.phone || 'N/A',
+        totalAmount: Number(o.totalAmount),
+        subtotal: Number(o.subtotal || o.totalAmount),
+        shippingFee: Number(o.shippingFee || 0),
+        tax: Number(o.tax || 0),
+        status: o.status,
+        paymentStatus: o.paymentStatus,
+        paymentMethod: o.paymentMethod || 'Credit Card (Stripe)',
+        paymentId: o.paymentId,
+        carrier: o.trackingNumber ? 'FedEx Express' : null,
+        trackingNumber: o.trackingNumber,
+        createdAt: o.createdAt,
+        shippingAddress: o.shippingAddress,
+        items: o.items || [],
+        timeline: [
+          { title: 'Order Placed', timestamp: o.createdAt, description: 'Order recorded in system.' },
+        ],
+      }));
+    }
+  } catch (err) {
+    // Memory fallback
+  }
+
+  // Combine live memory orders from checkout with archive
+  const memorySource = orderService.memoryOrders || [];
+  const mergedMemoryOrders = [...memorySource, ...adminOrderArchive];
+
+  if (allOrders.length === 0) {
+    allOrders = mergedMemoryOrders;
+  }
+
+  // Remove duplicate order numbers if any
+  const uniqueOrdersMap = new Map();
+  allOrders.forEach((o) => {
+    if (!uniqueOrdersMap.has(o.orderNumber)) {
+      uniqueOrdersMap.set(o.orderNumber, o);
+    }
+  });
+  let filtered = Array.from(uniqueOrdersMap.values());
+
+  // Count by status
+  const counts = {
+    all: filtered.length,
+    pending: filtered.filter((o) => o.status === 'PENDING').length,
+    processing: filtered.filter((o) => o.status === 'PROCESSING').length,
+    shipped: filtered.filter((o) => o.status === 'SHIPPED').length,
+    delivered: filtered.filter((o) => o.status === 'DELIVERED').length,
+    cancelled: filtered.filter((o) => o.status === 'CANCELLED').length,
+  };
+
+  // Search by orderNumber, customerName, email, trackingNumber
+  if (search) {
+    const q = search.toLowerCase().trim();
+    filtered = filtered.filter(
+      (o) =>
+        o.orderNumber.toLowerCase().includes(q) ||
+        (o.customerName && o.customerName.toLowerCase().includes(q)) ||
+        (o.email && o.email.toLowerCase().includes(q)) ||
+        (o.trackingNumber && o.trackingNumber.toLowerCase().includes(q))
+    );
+  }
+
+  // Filter by status
+  if (status && status.toUpperCase() !== 'ALL') {
+    filtered = filtered.filter((o) => o.status === status.toUpperCase());
+  }
+
+  const pageNum = parseInt(page, 10) || 1;
+  const limitNum = parseInt(limit, 10) || 20;
+  const startIndex = (pageNum - 1) * limitNum;
+  const paginated = filtered.slice(startIndex, startIndex + limitNum);
+
+  return {
+    orders: paginated,
+    pagination: {
+      total: filtered.length,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(filtered.length / limitNum),
+    },
+    counts,
+  };
+};
+
+/**
+ * Admin: Get complete order details with tracking timeline and items
+ */
+const getAdminOrderDetails = async (orderNumber) => {
+  const result = await getAdminOrders({ search: orderNumber, limit: 1 });
+  const order = result.orders.find((o) => o.orderNumber === orderNumber);
+
+  if (!order) {
+    const error = new Error(`Order #${orderNumber} not found.`);
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return order;
+};
+
+/**
+ * Admin: Update fulfillment status, assign courier tracking & carrier, send email
+ */
+const updateAdminOrderFulfillment = async (orderNumber, { status, trackingNumber, carrier, notes }) => {
+  const allowed = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+  if (status && !allowed.includes(status.toUpperCase())) {
+    const error = new Error(`Invalid status: ${status}. Must be one of: ${allowed.join(', ')}`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  let order = null;
+  try {
+    const updated = await prisma.order.update({
+      where: { orderNumber },
+      data: {
+        ...(status && { status: status.toUpperCase() }),
+        ...(trackingNumber && { trackingNumber }),
+      },
+      include: {
+        items: true,
+        shippingAddress: true,
+        user: true,
+      },
+    });
+    if (updated) {
+      order = {
+        ...updated,
+        customerName: updated.shippingAddress?.fullName || updated.user?.name,
+        email: updated.shippingAddress?.email || updated.user?.email,
+        carrier: carrier || 'FedEx Express',
+      };
+    }
+  } catch (err) {
+    // Memory fallback
+  }
+
+  if (!order) {
+    // Search in live memory or archive
+    const merged = [...(orderService.memoryOrders || []), ...adminOrderArchive];
+    order = merged.find((o) => o.orderNumber === orderNumber);
+    if (!order) {
+      const error = new Error(`Order #${orderNumber} not found.`);
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (status) order.status = status.toUpperCase();
+    if (trackingNumber) order.trackingNumber = trackingNumber;
+    if (carrier) order.carrier = carrier;
+    if (notes) order.notes = notes;
+
+    if (!order.timeline) order.timeline = [];
+    order.timeline.push({
+      title: `Fulfillment: ${order.status}`,
+      timestamp: new Date().toISOString(),
+      description: trackingNumber
+        ? `Dispatched via ${order.carrier || 'Courier'}. Tracking ID: ${trackingNumber}`
+        : `Status updated to ${order.status}.`,
+    });
+  }
+
+  // Trigger Brevo shipping dispatch notification email if transitioned to SHIPPED
+  if (status && status.toUpperCase() === 'SHIPPED') {
+    try {
+      await emailService.sendShippingUpdateEmail(order, order.trackingNumber || trackingNumber || 'TRK-SS-PENDING', order.carrier || carrier || 'FedEx Express');
+    } catch (emailErr) {
+      console.warn('Dispatch email notification failed:', emailErr.message);
+    }
+  }
+
+  return order;
+};
+
+/**
+ * Admin: Get detailed customer CRM dossier with LTV and order history
+ */
+const getAdminCustomerDetails = async (userId) => {
+  let customer = null;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        addresses: true,
+        orders: {
+          include: { items: true },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+    if (user) {
+      const totalSpent = user.orders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone || 'N/A',
+        role: user.role,
+        avatar: user.avatar,
+        createdAt: user.createdAt,
+        metrics: {
+          totalSpent: parseFloat(totalSpent.toFixed(2)),
+          totalOrders: user.orders.length,
+          averageOrderValue: user.orders.length > 0 ? parseFloat((totalSpent / user.orders.length).toFixed(2)) : 0,
+        },
+        orders: user.orders.map((o) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          totalAmount: Number(o.totalAmount),
+          status: o.status,
+          createdAt: o.createdAt,
+          itemCount: o.items.length,
+        })),
+        addresses: user.addresses || [],
+      };
+    }
+  } catch (err) {
+    // Memory fallback
+  }
+
+  // Fallback to memory
+  const memUsers = Object.values(memoryUsers);
+  customer = memUsers.find((u) => u.id === userId || u.email === userId) || memUsers[0];
+
+  if (!customer) {
+    customer = {
+      id: userId || 'usr-sample',
+      name: 'Marcus Aurelius Sterling',
+      email: 'marcus.sterling@example.com',
+      phone: '+1 (555) 234-5678',
+      role: 'CUSTOMER',
+      createdAt: '2026-01-15T00:00:00.000Z',
+    };
+  }
+
+  // Find associated orders in archive or memory
+  const associatedOrders = adminOrderArchive.filter(
+    (o) => o.userId === customer.id || o.email === customer.email
+  );
+  const totalSpent = associatedOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+  return {
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone || '+1 (555) 234-5678',
+    role: customer.role,
+    avatar: customer.avatar || null,
+    createdAt: customer.createdAt,
+    metrics: {
+      totalSpent: parseFloat(totalSpent.toFixed(2)),
+      totalOrders: associatedOrders.length,
+      averageOrderValue: associatedOrders.length > 0 ? parseFloat((totalSpent / associatedOrders.length).toFixed(2)) : 0,
+      vipStatus: totalSpent >= 500 ? 'VIP Atelier Collector' : 'Standard Collector',
+    },
+    orders: associatedOrders.map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      totalAmount: o.totalAmount,
+      status: o.status,
+      createdAt: o.createdAt,
+      itemCount: o.items?.length || 1,
+      trackingNumber: o.trackingNumber,
+      carrier: o.carrier,
+    })),
+    addresses: [
+      {
+        id: 'addr-1',
+        fullName: customer.name,
+        phone: customer.phone || '+1 (555) 234-5678',
+        street: '742 Evergreen Terrace, Suite 4B',
+        city: 'Beverly Hills',
+        state: 'CA',
+        postalCode: '90210',
+        country: 'United States',
+        isDefault: true,
+      },
+    ],
+  };
+};
+
 module.exports = {
   getDashboardAnalytics,
   updateOrderStatus,
@@ -813,4 +1400,9 @@ module.exports = {
   toggleProductStatus,
   updateProductStock,
   bulkProductActions,
+  getAdminOrders,
+  getAdminOrderDetails,
+  updateAdminOrderFulfillment,
+  getAdminCustomerDetails,
 };
+

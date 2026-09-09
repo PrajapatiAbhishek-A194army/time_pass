@@ -88,3 +88,36 @@ export const bulkAdminProducts = async (action, productIds) => {
   return response.data;
 };
 
+/**
+ * Fetch orders list with search, status filters, pagination, and counts
+ */
+export const fetchAdminOrders = async (params = {}) => {
+  const response = await api.get('/admin/orders', { params });
+  return response.data;
+};
+
+/**
+ * Fetch single order details with items, shipping address, and tracking history
+ */
+export const fetchAdminOrderDetails = async (orderNumber) => {
+  const response = await api.get(`/admin/orders/${orderNumber}`);
+  return response.data;
+};
+
+/**
+ * Update order fulfillment (status, courier, tracking number, notes)
+ */
+export const updateAdminOrderFulfillment = async (orderNumber, data) => {
+  const response = await api.patch(`/admin/orders/${orderNumber}/fulfillment`, data);
+  return response.data;
+};
+
+/**
+ * Fetch customer CRM dossier with LTV and order history
+ */
+export const fetchAdminCustomerDetails = async (userId) => {
+  const response = await api.get(`/admin/customers/${userId}`);
+  return response.data;
+};
+
+

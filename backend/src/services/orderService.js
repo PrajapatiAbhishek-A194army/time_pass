@@ -284,5 +284,6 @@ module.exports = {
   cancelOrder,
   generateOrderNumber,
   generateTrackingNumber,
+  memoryOrders,
 };
 

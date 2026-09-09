@@ -206,10 +206,82 @@ const bulkActions = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get all orders with admin filters & status counts
+ * @route   GET /api/admin/orders
+ * @access  Private/Admin
+ */
+const getOrders = async (req, res, next) => {
+  try {
+    const result = await adminService.getAdminOrders(req.query);
+    res.status(200).json({
+      success: true,
+      data: result.orders,
+      pagination: result.pagination,
+      counts: result.counts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get single order details for admin
+ * @route   GET /api/admin/orders/:orderNumber
+ * @access  Private/Admin
+ */
+const getOrderDetails = async (req, res, next) => {
+  try {
+    const order = await adminService.getAdminOrderDetails(req.params.orderNumber);
+    res.status(200).json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Update order fulfillment (status, tracking ID, courier, notes)
+ * @route   PATCH /api/admin/orders/:orderNumber/fulfillment
+ * @access  Private/Admin
+ */
+const updateOrderFulfillment = async (req, res, next) => {
+  try {
+    const updated = await adminService.updateAdminOrderFulfillment(req.params.orderNumber, req.body);
+    res.status(200).json({
+      success: true,
+      message: `Consignment #${req.params.orderNumber} updated to ${updated.status}.`,
+      data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get customer CRM dossier with LTV and order history
+ * @route   GET /api/admin/customers/:id
+ * @access  Private/Admin
+ */
+const getCustomerDetails = async (req, res, next) => {
+  try {
+    const dossier = await adminService.getAdminCustomerDetails(req.params.id);
+    res.status(200).json({
+      success: true,
+      data: dossier,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getDashboard,
   updateOrderStatus,
   getCustomers,
+  getCustomerDetails,
   getProducts,
   getProductById,
   createProduct,
@@ -218,4 +290,7 @@ module.exports = {
   toggleProductStatus,
   updateProductStock,
   bulkActions,
+  getOrders,
+  getOrderDetails,
+  updateOrderFulfillment,
 };

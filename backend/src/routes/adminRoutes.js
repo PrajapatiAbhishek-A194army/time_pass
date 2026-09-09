@@ -13,8 +13,9 @@ router.get('/dashboard', adminController.getDashboard);
 // PATCH /api/admin/orders/:orderNumber/status
 router.patch('/orders/:orderNumber/status', adminController.updateOrderStatus);
 
-// GET /api/admin/customers
+// GET /api/admin/customers & customer dossier
 router.get('/customers', adminController.getCustomers);
+router.get('/customers/:id', adminController.getCustomerDetails);
 
 // Product & Inventory Management
 router.get('/products', adminController.getProducts);
@@ -25,6 +26,11 @@ router.put('/products/:id', adminController.updateProduct);
 router.delete('/products/:id', adminController.deleteProduct);
 router.patch('/products/:id/toggle-status', adminController.toggleProductStatus);
 router.patch('/products/:id/stock', adminController.updateProductStock);
+
+// Order Fulfillment & Logistics Management
+router.get('/orders', adminController.getOrders);
+router.get('/orders/:orderNumber', adminController.getOrderDetails);
+router.patch('/orders/:orderNumber/fulfillment', adminController.updateOrderFulfillment);
 
 module.exports = router;
 

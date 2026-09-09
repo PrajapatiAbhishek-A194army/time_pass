@@ -19,6 +19,7 @@ import AdminRoute from './AdminRoute';
 import AdminLayout from '../layouts/AdminLayout';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
 import AdminProductsPage from '../pages/admin/AdminProductsPage';
+import AdminOrdersPage from '../pages/admin/AdminOrdersPage';
 import AdminCustomersPage from '../pages/admin/AdminCustomersPage';
 import AdminPlaceholderPage from '../pages/admin/AdminPlaceholderPage';
 
@@ -51,7 +52,7 @@ export default function AppRoutes() {
                 <Route index element={<AdminDashboardPage />} />
                 <Route path="customers" element={<AdminCustomersPage />} />
                 <Route path="products" element={<AdminProductsPage />} />
-                <Route path="orders" element={<AdminDashboardPage />} />
+                <Route path="orders" element={<AdminOrdersPage />} />
                 <Route path="analytics" element={<AdminDashboardPage />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Routes>

@@ -302,8 +302,105 @@ const sendOrderConfirmationEmail = async (order, userOrGuest) => {
   }
 };
 
+/**
+ * Send Consignment Shipping & Dispatch Notification Email via Brevo SMTP
+ */
+const sendShippingUpdateEmail = async (order, trackingNumber, carrier = 'FedEx Express') => {
+  const transporter = createTransporter();
+  const fromEmail = process.env.EMAIL_FROM || 'SoleSphere Logistics <support@solesphere.com>';
+  const recipientEmail = order.shippingAddress?.email || order.user?.email || 'collector@solesphere.com';
+  const recipientName = order.shippingAddress?.fullName || order.user?.name || 'SoleSphere Collector';
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const trackingUrl = `${frontendUrl}/order-confirmation/${order.orderNumber}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Your SoleSphere Consignment Has Dispatched</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0a0a0a; margin: 0; padding: 30px; color: #f8fafc; }
+        .card { max-width: 580px; margin: 0 auto; background: #171717; border-radius: 24px; overflow: hidden; border: 1px solid #262626; }
+        .header { background: linear-gradient(135deg, #052e16 0%, #064e3b 50%, #10b981 100%); padding: 35px 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { color: #a7f3d0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-family: monospace; }
+        .content { padding: 35px 30px; line-height: 1.6; }
+        .badge { display: inline-block; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; margin-bottom: 20px; font-family: monospace; }
+        .tracking-box { background: #0a0a0a; border: 1px solid #262626; border-radius: 16px; padding: 20px; margin: 24px 0; }
+        .btn { display: inline-block; background-color: #10b981; color: #0a0a0a !important; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 800; font-size: 13px; letter-spacing: 0.5px; }
+        .footer { padding: 25px 30px; text-align: center; font-size: 11px; color: #737373; border-top: 1px solid #262626; background: #121212; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="header">
+          <h1>SoleSphere</h1>
+          <p>Consignment Logistics</p>
+        </div>
+        <div class="content">
+          <div class="badge">&#9992; Consignment In Transit</div>
+          <h2 style="margin: 0 0 10px 0; font-size: 22px; color: #ffffff;">Your Footwear Is On Its Way, ${recipientName}</h2>
+          <p style="color: #a3a3a3; font-size: 14px; margin-top: 0;">Our atelier has carefully packed your order and transferred it to ${carrier} for expedited global courier delivery.</p>
+
+          <div class="tracking-box">
+            <table style="width: 100%; font-size: 13px;">
+              <tr>
+                <td style="color: #737373; padding: 4px 0;">Order Reference:</td>
+                <td style="text-align: right; font-weight: 700; color: #ffffff; font-family: monospace;">${order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="color: #737373; padding: 4px 0;">Courier Partner:</td>
+                <td style="text-align: right; font-weight: 700; color: #ffffff;">${carrier}</td>
+              </tr>
+              <tr>
+                <td style="color: #737373; padding: 4px 0;">Waybill Tracking ID:</td>
+                <td style="text-align: right; font-weight: 800; color: #10b981; font-family: monospace; letter-spacing: 1px;">${trackingNumber}</td>
+              </tr>
+              <tr>
+                <td style="color: #737373; padding: 4px 0;">Delivery Estimate:</td>
+                <td style="text-align: right; font-weight: 600; color: #ffffff;">2&ndash;4 Business Days</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="${trackingUrl}" class="btn">Track Consignment Real-Time</a>
+          </div>
+        </div>
+        <div class="footer">
+          SoleSphere Atelier &amp; Sport &bull; Concierge support: <a href="mailto:support@solesphere.com" style="color: #10b981;">support@solesphere.com</a><br/>
+          &copy; ${new Date().getFullYear()} SoleSphere Inc. Global Courier Dispatch Network.
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  if (!transporter) {
+    console.log(`[Email Service Mock (Brevo SMTP not configured)] Dispatch email simulated for: ${recipientEmail} (Waybill: ${trackingNumber})`);
+    return { success: true, simulated: true, trackingUrl };
+  }
+
+  try {
+    const info = await transporter.sendMail({
+      from: fromEmail,
+      to: recipientEmail,
+      subject: `SoleSphere Dispatched — Consignment #${order.orderNumber} In Transit`,
+      html,
+    });
+    console.log(`[Email Service] Shipping dispatch email delivered to ${recipientEmail} via Brevo SMTP: ${info.messageId}`);
+    return { success: true, messageId: info.messageId, trackingUrl };
+  } catch (error) {
+    console.error('[Email Service Error - Shipping Dispatch]:', error.message);
+    return { success: false, error: error.message, trackingUrl };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendPasswordResetEmail,
   sendOrderConfirmationEmail,
+  sendShippingUpdateEmail,
 };
+
