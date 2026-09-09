@@ -18,6 +18,7 @@ import OrderConfirmationPage from '../pages/OrderConfirmationPage';
 import AdminRoute from './AdminRoute';
 import AdminLayout from '../layouts/AdminLayout';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import AdminProductsPage from '../pages/admin/AdminProductsPage';
 import AdminCustomersPage from '../pages/admin/AdminCustomersPage';
 import AdminPlaceholderPage from '../pages/admin/AdminPlaceholderPage';
 
@@ -49,16 +50,7 @@ export default function AppRoutes() {
               <Routes>
                 <Route index element={<AdminDashboardPage />} />
                 <Route path="customers" element={<AdminCustomersPage />} />
-                <Route
-                  path="products"
-                  element={
-                    <AdminPlaceholderPage
-                      title="Product & Inventory Control"
-                      phase="Phase 11"
-                      description="Full shoe creation, SKU variations, price adjusting, multi-angle imagery, and size stock management are scheduled for Phase 11."
-                    />
-                  }
-                />
+                <Route path="products" element={<AdminProductsPage />} />
                 <Route path="orders" element={<AdminDashboardPage />} />
                 <Route path="analytics" element={<AdminDashboardPage />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />

@@ -33,7 +33,7 @@ export default function AdminLayout({ children }) {
 
   const navItems = [
     { label: 'Executive Dashboard', path: '/admin', icon: FiGrid, badge: 'Live' },
-    { label: 'Product Inventory', path: '/admin/products', icon: FiBox, badge: 'Phase 11' },
+    { label: 'Product Inventory', path: '/admin/products', icon: FiBox, badge: 'Active' },
     { label: 'Orders & Fulfillment', path: '/admin/orders', icon: FiShoppingBag, badge: '5 Active' },
     { label: 'Customer Roster', path: '/admin/customers', icon: FiUsers },
     { label: 'Revenue Analytics', path: '/admin/analytics', icon: FiBarChart2 },
