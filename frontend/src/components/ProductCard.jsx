@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FiHeart, FiShoppingBag, FiStar, FiCheck } from 'react-icons/fi';
 import Badge from './Badge';
 
@@ -62,12 +63,14 @@ export default function ProductCard({
         </button>
 
         {/* Sneaker Image with Smooth Hover Zoom */}
-        <img
-          src={product.image}
-          alt={product.name}
-          loading="lazy"
-          className="w-full h-full object-cover object-center transform group-hover:scale-108 transition-transform duration-500 ease-out"
-        />
+        <Link to={`/products/${product.slug}`} className="w-full h-full block">
+          <img
+            src={product.image}
+            alt={product.name}
+            loading="lazy"
+            className="w-full h-full object-cover object-center transform group-hover:scale-108 transition-transform duration-500 ease-out"
+          />
+        </Link>
 
         {/* Quick Add Overlay on Desktop Hover */}
         <div className="absolute inset-x-3 bottom-3 z-10 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-200 hidden sm:block">
@@ -108,9 +111,11 @@ export default function ProductCard({
           </div>
 
           {/* Product Name */}
-          <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg line-clamp-1 group-hover:text-brand-800 transition-colors mb-2">
-            {product.name}
-          </h3>
+          <Link to={`/products/${product.slug}`} className="block">
+            <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg line-clamp-1 group-hover:text-brand-800 transition-colors mb-2">
+              {product.name}
+            </h3>
+          </Link>
 
           {/* Color preview count or tags */}
           {product.colors && (
