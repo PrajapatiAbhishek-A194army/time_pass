@@ -7,12 +7,14 @@ import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 import ProfilePage from '../pages/ProfilePage';
+import CatalogPage from '../pages/CatalogPage';
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route element={<StorefrontLayout />}>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

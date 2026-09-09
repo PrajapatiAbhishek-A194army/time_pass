@@ -40,9 +40,13 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const productRoutes = require('./routes/productRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 // API Endpoints
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Root API Endpoint
 app.get('/api', (req, res) => {

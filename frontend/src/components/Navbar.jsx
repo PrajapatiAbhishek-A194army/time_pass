@@ -43,12 +43,21 @@ export default function Navbar({
   }, [location]);
 
   const navLinks = [
-    { name: 'Featured Drops', href: '#featured' },
-    { name: 'Running', href: '#categories' },
-    { name: 'Streetwear', href: '#categories' },
-    { name: 'Craftsmanship', href: '#story' },
-    { name: 'Reviews', href: '#reviews' },
+    { name: 'All Footwear', href: '/catalog', isRoute: true },
+    { name: 'Featured Drops', href: '/catalog?sort=featured', isRoute: true },
+    { name: 'Running', href: '/catalog?category=performance-running', isRoute: true },
+    { name: 'Streetwear', href: '/catalog?category=streetwear', isRoute: true },
+    { name: 'Craftsmanship', href: '/#story', isRoute: false },
+    { name: 'Reviews', href: '/#reviews', isRoute: false },
   ];
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+    }
+  };
 
   return (
     <>
@@ -113,15 +122,25 @@ export default function Navbar({
 
           {/* Center: Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="text-sm font-semibold text-slate-700 hover:text-brand-700 transition-colors py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-600 hover:after:w-full after:transition-all after:duration-200"
-              >
-                {link.name}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="text-sm font-semibold text-slate-700 hover:text-brand-700 transition-colors py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-600 hover:after:w-full after:transition-all after:duration-200"
+                >
+                  {link.name}
+                </Link>
+              ) : (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-semibold text-slate-700 hover:text-brand-700 transition-colors py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-600 hover:after:w-full after:transition-all after:duration-200"
+                >
+                  {link.name}
+                </a>
+              )
+            )}
           </nav>
 
           {/* Right: Actions (Search, Wishlist, Cart, Profile) */}
@@ -223,7 +242,7 @@ export default function Navbar({
         {/* Expandable Search Input Bar */}
         {searchOpen && (
           <div className="border-t border-slate-200 bg-white px-4 py-3 sm:px-8 animate-fadeIn">
-            <div className="max-w-3xl mx-auto relative flex items-center">
+            <form onSubmit={handleSearchSubmit} className="max-w-3xl mx-auto relative flex items-center">
               <FiSearch className="absolute left-4 w-5 h-5 text-slate-400" />
               <input
                 type="text"
@@ -234,12 +253,13 @@ export default function Navbar({
                 className="w-full pl-12 pr-10 py-3 bg-[#F5F8F6] border border-slate-200 rounded-full text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
               />
               <button
+                type="button"
                 onClick={() => setSearchOpen(false)}
                 className="absolute right-3 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition"
               >
                 <FiX className="w-4 h-4" />
               </button>
-            </div>
+            </form>
           </div>
         )}
       </header>
