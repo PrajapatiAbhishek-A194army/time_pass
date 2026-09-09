@@ -415,6 +415,8 @@ export default function ProductDetailsPage({ onAddToCart, onToggleWishlist }) {
       {/* Customer Reviews Section */}
       <div id="reviews">
         <ReviewList
+          productId={product.id}
+          productSlug={product.slug}
           reviews={product.reviews || []}
           rating={product.rating || 4.9}
           reviewCount={product.reviewCount || 48}
