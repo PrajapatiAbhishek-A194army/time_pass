@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiHeart, FiShoppingBag, FiStar, FiCheck } from 'react-icons/fi';
 import Badge from './Badge';
+import { useCartWishlist } from '../context/CartWishlistContext';
 
 export default function ProductCard({
   product,
   onAddToCart,
   onToggleWishlist,
-  isWishlisted = false,
+  isWishlisted: propIsWishlisted,
 }) {
-  const [wishlist, setWishlist] = useState(isWishlisted);
+  const { addToCart, toggleWishlist, isInWishlist } = useCartWishlist();
+  const wishlisted = propIsWishlisted !== undefined ? propIsWishlisted : isInWishlist(product?.id);
   const [added, setAdded] = useState(false);
 
   const discountPercent = product.originalPrice
@@ -19,17 +21,30 @@ export default function ProductCard({
   const handleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setWishlist(!wishlist);
-    if (onToggleWishlist) onToggleWishlist(product, !wishlist);
+    if (onToggleWishlist) {
+      onToggleWishlist(product, !wishlisted);
+    } else {
+      toggleWishlist(product);
+    }
   };
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setAdded(true);
-    if (onAddToCart) onAddToCart(product);
+    if (onAddToCart) {
+      onAddToCart(product);
+    } else {
+      addToCart(
+        product,
+        1,
+        product.sizes?.[0] || 'US 9',
+        product.colors?.[0] || 'Default'
+      );
+    }
     setTimeout(() => setAdded(false), 2000);
   };
+
 
   return (
     <div className="group relative bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-slate-200/80 hover:border-brand-300 shadow-soft hover:shadow-premium transition-all duration-300 flex flex-col justify-between">
@@ -54,12 +69,12 @@ export default function ProductCard({
           onClick={handleWishlist}
           aria-label="Add to Wishlist"
           className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-md ${
-            wishlist
+            wishlisted
               ? 'bg-rose-50 text-rose-500 shadow-md scale-105'
               : 'bg-white/80 text-slate-500 hover:text-rose-500 hover:bg-white shadow-sm'
           }`}
         >
-          <FiHeart className={`w-4 h-4 transition-transform ${wishlist ? 'fill-current scale-110' : ''}`} />
+          <FiHeart className={`w-4 h-4 transition-transform ${wishlisted ? 'fill-current scale-110' : ''}`} />
         </button>
 
         {/* Sneaker Image with Smooth Hover Zoom */}
