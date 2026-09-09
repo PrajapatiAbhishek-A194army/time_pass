@@ -23,3 +23,11 @@ export const fetchUserOrders = async () => {
   const response = await api.get('/orders');
   return response.data;
 };
+
+/**
+ * Cancel an order
+ */
+export const cancelOrder = async (orderNumber) => {
+  const response = await api.patch(`/orders/${orderNumber}/cancel`);
+  return response.data;
+};

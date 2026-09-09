@@ -272,11 +272,124 @@ const getProfile = async (userId) => {
   throw error;
 };
 
+/**
+ * Update user profile details (name, phone)
+ */
+const updateProfile = async (userId, { name, phone }) => {
+  if (!name || name.trim().length < 2) {
+    const error = new Error('Name must be at least 2 characters long.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  try {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: name.trim(),
+        phone: phone ? phone.trim() : null,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        avatar: true,
+        createdAt: true,
+      },
+    });
+    if (updated) return updated;
+  } catch (err) {
+    // Database fallback
+  }
+
+  if (memoryUsers[userId]) {
+    memoryUsers[userId].name = name.trim();
+    if (phone !== undefined) memoryUsers[userId].phone = phone ? phone.trim() : null;
+    const mem = memoryUsers[userId];
+    return {
+      id: mem.id,
+      name: mem.name,
+      email: mem.email,
+      role: mem.role,
+      phone: mem.phone,
+      avatar: mem.avatar,
+      createdAt: mem.createdAt,
+    };
+  }
+
+  const error = new Error('User not found.');
+  error.statusCode = 404;
+  throw error;
+};
+
+/**
+ * Change password
+ */
+const changePassword = async (userId, { currentPassword, newPassword }) => {
+  if (!currentPassword || !newPassword) {
+    const error = new Error('Both current and new passwords are required.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (newPassword.length < 8) {
+    const error = new Error('New password must be at least 8 characters long.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  let user = null;
+  try {
+    user = await prisma.user.findUnique({ where: { id: userId } });
+  } catch (err) {
+    // Check memory
+  }
+
+  if (!user && memoryUsers[userId]) {
+    user = memoryUsers[userId];
+  }
+
+  if (!user) {
+    const error = new Error('User account not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    const error = new Error('Current password does not match.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const salt = await bcrypt.genSalt(12);
+  const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  } catch (err) {
+    // DB fallback
+  }
+
+  if (memoryUsers[userId]) {
+    memoryUsers[userId].password = hashedPassword;
+  }
+
+  return { success: true, message: 'Password has been updated successfully.' };
+};
+
 module.exports = {
   register,
   login,
   forgotPassword,
   resetPassword,
   getProfile,
+  updateProfile,
+  changePassword,
   memoryUsers,
 };

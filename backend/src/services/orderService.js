@@ -233,10 +233,56 @@ const getOrderByNumber = async (orderNumber) => {
   return found || null;
 };
 
+/**
+ * Cancel order if status is PENDING or PROCESSING
+ */
+const cancelOrder = async (userId, orderNumber) => {
+  const order = await getOrderByNumber(orderNumber);
+  if (!order) {
+    const error = new Error(`Order #${orderNumber} not found.`);
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (order.userId && userId && order.userId !== userId) {
+    const error = new Error('You are not authorized to cancel this order.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const cancellableStatuses = ['PENDING', 'PROCESSING'];
+  if (!cancellableStatuses.includes(order.status)) {
+    const error = new Error(
+      `Order cannot be cancelled because its current status is ${order.status}. Only Pending or Processing orders can be cancelled.`
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  try {
+    const updated = await prisma.order.update({
+      where: { orderNumber: order.orderNumber },
+      data: { status: 'CANCELLED' },
+      include: {
+        items: true,
+        shippingAddress: true,
+      },
+    });
+    if (updated) return updated;
+  } catch (err) {
+    // Fallback in-memory
+  }
+
+  order.status = 'CANCELLED';
+  return order;
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
   getOrderByNumber,
+  cancelOrder,
   generateOrderNumber,
   generateTrackingNumber,
 };
+

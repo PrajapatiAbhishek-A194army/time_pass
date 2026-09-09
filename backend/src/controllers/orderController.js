@@ -105,8 +105,34 @@ const getOrderByNumber = async (req, res) => {
   }
 };
 
+/**
+ * Cancel order
+ * PATCH /api/orders/:orderNumber/cancel
+ */
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderNumber } = req.params;
+    const userId = req.user?.id || null;
+    const order = await orderService.cancelOrder(userId, orderNumber);
+
+    return res.status(200).json({
+      success: true,
+      message: `Order #${orderNumber} has been successfully cancelled.`,
+      data: order,
+    });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    return res.status(error.statusCode || 400).json({
+      success: false,
+      message: error.message || 'Failed to cancel order.',
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
   getOrderByNumber,
+  cancelOrder,
 };
+

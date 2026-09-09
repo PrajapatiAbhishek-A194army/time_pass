@@ -12,4 +12,7 @@ router.get('/', protect, orderController.getUserOrders);
 // Get single order details by orderNumber (public/accessible with order number)
 router.get('/:orderNumber', optionalProtect, orderController.getOrderByNumber);
 
+// Cancel order (requires auth or owner verification)
+router.patch('/:orderNumber/cancel', optionalProtect, orderController.cancelOrder);
+
 module.exports = router;

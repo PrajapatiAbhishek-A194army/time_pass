@@ -32,3 +32,13 @@ export const logoutUser = async () => {
     // Ignore backend logout error
   }
 };
+
+export const updateUserProfile = async (data) => {
+  const response = await api.put('/auth/profile', data);
+  return response.data;
+};
+
+export const changeUserPassword = async (data) => {
+  const response = await api.put('/auth/change-password', data);
+  return response.data;
+};

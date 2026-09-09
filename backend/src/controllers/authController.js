@@ -100,6 +100,36 @@ const logout = async (req, res, next) => {
   });
 };
 
+const updateProfile = async (req, res, next) => {
+  try {
+    const updated = await authService.updateProfile(req.user.id, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Change password
+ * @route   PUT /api/auth/change-password
+ * @access  Private
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const result = await authService.changePassword(req.user.id, req.body);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -107,4 +137,7 @@ module.exports = {
   resetPassword,
   getMe,
   logout,
+  updateProfile,
+  changePassword,
 };
+
