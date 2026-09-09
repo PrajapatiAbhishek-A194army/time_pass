@@ -91,6 +91,59 @@ const protect = async (req, res, next) => {
 };
 
 /**
+ * Optional authentication: attaches req.user if token is valid, otherwise continues as guest
+ */
+const optionalProtect = async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+
+  try {
+    const secret = process.env.JWT_SECRET || 'solesphere_fallback_secret_key_2026';
+    const decoded = jwt.verify(token, secret);
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      });
+
+      if (user) {
+        req.user = user;
+      } else if (memoryUsers && memoryUsers[decoded.id]) {
+        req.user = memoryUsers[decoded.id];
+      } else {
+        req.user = null;
+      }
+    } catch {
+      if (memoryUsers && memoryUsers[decoded.id]) {
+        req.user = memoryUsers[decoded.id];
+      } else {
+        req.user = null;
+      }
+    }
+  } catch {
+    req.user = null;
+  }
+
+  return next();
+};
+
+/**
  * Restrict route to ADMIN role
  */
 const admin = (req, res, next) => {
@@ -104,4 +157,5 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+module.exports = { protect, optionalProtect, admin };
+

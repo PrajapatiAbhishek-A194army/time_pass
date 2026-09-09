@@ -214,19 +214,32 @@ export default function CartDrawer() {
               </div>
             </div>
 
-            <Button
-              variant="luxury"
-              size="md"
-              onClick={() => {
-                closeCart();
-                navigate('/cart');
-              }}
-              icon={<FiArrowRight className="w-4 h-4" />}
-              iconPosition="right"
-              className="w-full"
-            >
-              Proceed to Bag & Checkout
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="luxury"
+                size="md"
+                onClick={() => {
+                  closeCart();
+                  navigate('/checkout');
+                }}
+                icon={<FiArrowRight className="w-4 h-4" />}
+                iconPosition="right"
+                className="w-full"
+              >
+                Instant Checkout
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  closeCart();
+                  navigate('/cart');
+                }}
+                className="w-full text-xs"
+              >
+                View Full Bag & Voucher
+              </Button>
+            </div>
 
             <p className="text-[10px] text-center text-slate-400">
               Taxes and final duties calculated at checkout.

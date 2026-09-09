@@ -11,6 +11,8 @@ import CatalogPage from '../pages/CatalogPage';
 import ProductDetailsPage from '../pages/ProductDetailsPage';
 import CartPage from '../pages/CartPage';
 import WishlistPage from '../pages/WishlistPage';
+import CheckoutPage from '../pages/CheckoutPage';
+import OrderConfirmationPage from '../pages/OrderConfirmationPage';
 
 export default function AppRoutes() {
   return (
@@ -21,6 +23,8 @@ export default function AppRoutes() {
         <Route path="/products/:slug" element={<ProductDetailsPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmationPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
